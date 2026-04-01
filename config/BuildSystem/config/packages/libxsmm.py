@@ -10,7 +10,7 @@ class Configure(config.package.Package):
                               'https://github.com/libxsmm/libxsmm/archive/'+self.gitcommit+'.tar.gz']
     self.downloaddirnames  = ['libxsmm']
     self.includes          = ['libxsmm.h']
-    self.liblist           = [['libxsmm.a', 'libxsmmext.a']]
+    self.liblist           = [['libxsmm.a']]
     self.functions         = ['libxsmm_init']
     self.precisions        = ['single', 'double']
     self.buildLanguages    = ['C', 'Cxx']
