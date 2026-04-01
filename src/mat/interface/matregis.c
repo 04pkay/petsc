@@ -15,6 +15,10 @@ PETSC_EXTERN PetscErrorCode MatCreate_MPIAIJ(Mat);
 PETSC_EXTERN PetscErrorCode MatCreate_SeqBAIJ(Mat);
 PETSC_EXTERN PetscErrorCode MatCreate_MPIBAIJ(Mat);
 
+//#if defined(PETSC_HAVE_LIBXSMM)
+PETSC_EXTERN PetscErrorCode MatCreate_SeqBAIJXSMM(Mat);
+//#endif
+
 PETSC_EXTERN PetscErrorCode MatCreate_SeqSBAIJ(Mat);
 PETSC_EXTERN PetscErrorCode MatCreate_MPISBAIJ(Mat);
 
@@ -173,6 +177,8 @@ PetscErrorCode MatRegisterAll(void)
   PetscCall(MatRegisterRootName(MATBAIJ, MATSEQBAIJ, MATMPIBAIJ));
   PetscCall(MatRegister(MATMPIBAIJ, MatCreate_MPIBAIJ));
   PetscCall(MatRegister(MATSEQBAIJ, MatCreate_SeqBAIJ));
+
+  PetscCall(MatRegister(MATSEQBAIJXSMM, MatCreate_SeqBAIJXSMM));
 
   PetscCall(MatRegisterRootName(MATSBAIJ, MATSEQSBAIJ, MATMPISBAIJ));
   PetscCall(MatRegister(MATMPISBAIJ, MatCreate_MPISBAIJ));
