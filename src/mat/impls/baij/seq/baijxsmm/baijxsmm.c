@@ -9,11 +9,9 @@ typedef struct {
 } XSMM_ProductCtx;
 
 /* Destroy routine */
-static PetscErrorCode XSMMSpMM_Destroy(void *prodctx) {
-    XSMM_ProductCtx *pctx = (XSMM_ProductCtx*)prodctx;
+static PetscErrorCode XSMMSpMM_Destroy(XSMM_ProductCtx **prodctx) {
     PetscFunctionBegin;
-    printf("[DIAG] Destroying pctx at address %p\n", prodctx);
-    PetscCall(PetscFree(pctx));
+    PetscCall(PetscFree(*prodctx));
     PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -81,14 +79,13 @@ static PetscErrorCode XSMMSpMM_Symbolic(Mat C) {
     PetscCall(MatGetLocalSize(B, NULL, &k_B));
     PetscCall(MatDenseGetLDA(B, &lda));
 
-    /* 2. COMPLETELY SET UP THE MATRIX FIRST */
-    /* This ensures PETSc finishes all its internal 'product' resets */
+    /* 2. Set up the matrix */
     PetscCall(MatSetSizes(C, m, k_B, m, k_B));
     PetscCall(MatSetType(C, MATSEQDENSE));
     PetscCall(MatSetUp(C)); 
     PetscCall(MatDenseGetLDA(C, &lda_C));
 
-    /* 3. NOW ALLOCATE YOUR DATA */
+    /* 3. Allcoate Data */
     PetscCall(PetscNew(&pctx));
     pctx->K = k_B;
 
@@ -100,12 +97,11 @@ static PetscErrorCode XSMMSpMM_Symbolic(Mat C) {
     );
     pctx->kernel = libxsmm_dispatch_gemm(shape, LIBXSMM_GEMM_FLAG_NONE, LIBXSMM_GEMM_PREFETCH_NONE);
 
-    /* 4. ATTACH TO THE FINISHED MATRIX */
+    /* 4. Attach to the finished matrix */
     C->product->data       = pctx;
-    C->product->destroy    = XSMMSpMM_Destroy;
+    C->product->destroy    = (PetscErrorCode (*)(void*))XSMMSpMM_Destroy;
     C->ops->productnumeric = XSMMSpMM_Numeric;
-    
-    printf("[DIAG] Allocated pctx at address %p\n", (void*)pctx);
+
     PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -113,31 +109,21 @@ static PetscErrorCode XSMMSpMM_Symbolic(Mat C) {
 
 /* Route MatMatMult to XSMM if Dense, else fallback */
 static PetscErrorCode MatProductSetFromOptions_SeqBAIJXSMM(Mat C) {
-    PetscCall(PetscPrintf(PETSC_COMM_SELF, "MatProductSetFromOptions_SeqBAIJXSMM called\n"));
+    MatType atype, btype;
+    MatGetType(C->product->A, &atype);
+    MatGetType(C->product->B, &btype);
+
     Mat_Product *product = C->product;
     Mat          B = product->B;
     PetscBool    isdense;
 
     PetscFunctionBegin;
-    PetscCall(PetscObjectTypeCompare((PetscObject)B, MATSEQDENSE, &isdense));
-    
-    if (isdense && product->type == MATPRODUCT_AB) {
-        C->ops->productsymbolic = XSMMSpMM_Symbolic;
-    } else {
-        printf("FALLBACK\n");
-        /* FALLBACK LOGIC */
-        PetscErrorCode (*f)(Mat);
-        // We ask the object C for the function pointer registered by the base SeqBAIJ class
-        PetscCall(PetscObjectQueryFunction((PetscObject)C, "MatProductSetFromOptions_seqbaij_C", &f));
-        
-        if (f) {
-            PetscCall((*f)(C));
-        } else {
-            // Fallback to the generic BAIJ name if the specific Seq one isn't found
-            PetscCall(PetscObjectQueryFunction((PetscObject)C, "MatProductSetFromOptions_baij_C", &f));
-            if (f) PetscCall((*f)(C));
-        }
+    if (C->ops->productsymbolic == XSMMSpMM_Symbolic) {
+        PetscFunctionReturn(PETSC_SUCCESS);
     }
+    PetscCall(PetscObjectTypeCompare((PetscObject)B, MATSEQDENSE, &isdense));
+    C->ops->productsymbolic = XSMMSpMM_Symbolic;
+
     PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -158,7 +144,6 @@ PETSC_INTERN PetscErrorCode MatConvert_SeqBAIJXSMM_SeqBAIJ(Mat A, MatType type, 
 
 /* Converts a standard SeqBAIJ into a SeqBAIJXSMM */
 PETSC_INTERN PetscErrorCode MatConvert_SeqBAIJ_SeqBAIJXSMM(Mat A, MatType type, MatReuse reuse, Mat *newmat) {
-    PetscCall(PetscPrintf(PETSC_COMM_SELF, "[DIAG] MatConvert_SeqBAIJ_SeqBAIJXSMM called\n"));
     Mat B = *newmat;
 
     PetscFunctionBegin;
