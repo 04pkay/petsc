@@ -1,5 +1,5 @@
 // mpicc -o benchmark_baijxsmm benchmark_baijxsmm.c -I${FORK_DIR}/include -I${FORK_DIR}/${FORK_ARCH}/include -I${HOME}/libxsmm/include -L${FORK_DIR}/${FORK_ARCH}/lib -lpetsc -L${HOME}/libxsmm/lib -lxsmm -Wl,-rpath,${FORK_DIR}/${FORK_ARCH}/lib -Wl,-rpath,${HOME}/libxsmm/lib
-// mpirun -np 1 ./benchmark_baijxsmm -file block4.petsc -columns 16
+// mpirun -np 1 ./benchmark_baijxsmm -file block4.petsc -columns 16 -mat_type baij
 
 #include <petsc.h>
 #include <libxsmm.h>
