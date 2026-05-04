@@ -27,8 +27,10 @@ PETSC_INTERN PetscErrorCode MatConvert_AIJ_HYPRE(Mat, MatType, MatReuse, Mat *);
 #if defined(PETSC_HAVE_MKL_SPARSE_OPTIMIZE)
 PETSC_INTERN PetscErrorCode MatConvert_SeqBAIJ_SeqBAIJMKL(Mat, MatType, MatReuse, Mat *);
 #endif
-PETSC_INTERN PetscErrorCode MatConvert_XAIJ_IS(Mat, MatType, MatReuse, Mat *);
+#if defined(PETSC_HAVE_LIBXSMM)
 PETSC_INTERN PetscErrorCode MatConvert_SeqBAIJ_SeqBAIJXSMM(Mat, MatType, MatReuse, Mat *);
+#endif
+PETSC_INTERN PetscErrorCode MatConvert_XAIJ_IS(Mat, MatType, MatReuse, Mat *);
 
 MatGetDiagonalMarkers(SeqBAIJ, A->rmap->bs)
 
@@ -3525,7 +3527,9 @@ PETSC_EXTERN PetscErrorCode MatCreate_SeqBAIJ(Mat B)
   PetscCall(PetscObjectComposeFunction((PetscObject)B, "MatConvert_seqbaij_hypre_C", MatConvert_AIJ_HYPRE));
 #endif
   PetscCall(PetscObjectComposeFunction((PetscObject)B, "MatConvert_seqbaij_is_C", MatConvert_XAIJ_IS));
+#if defined(PETSC_HAVE_LIBXSMM)
   PetscCall(PetscObjectComposeFunction((PetscObject)B, "MatConvert_seqbaij_seqbaijxsmm_C", MatConvert_SeqBAIJ_SeqBAIJXSMM));
+#endif
   PetscCall(PetscObjectChangeTypeName((PetscObject)B, MATSEQBAIJ));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

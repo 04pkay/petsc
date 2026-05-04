@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
     PetscCall(PetscViewerDestroy(&viewer));
 
     // Convert to native BAIJXSMM type
-    PetscCall(MatConvert(A, MATSEQBAIJXSMM, MAT_INITIAL_MATRIX, &A_xsmm));
+    PetscCall(MatConvert(A, MATBAIJXSMM, MAT_INITIAL_MATRIX, &A_xsmm));
 
     PetscCall(MatGetBlockSize(A_xsmm, &block_size));
     PetscCall(MatGetType(A_xsmm, &type));
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
     /* Create Dense Matrix X */
     PetscInt m_local, n_local;
     PetscCall(MatGetLocalSize(A_xsmm, &m_local, &n_local));
-    PetscCall(MatCreateDense(PETSC_COMM_WORLD, n_local, K, PETSC_DETERMINE, K, NULL, &X));
+    PetscCall(MatCreateDense(PETSC_COMM_WORLD, n_local, PETSC_DECIDE, PETSC_DETERMINE, K, NULL, &X));
 
     // Initialize X with 1.0 (Fixed from MatSet error)
     PetscScalar *px_init;
