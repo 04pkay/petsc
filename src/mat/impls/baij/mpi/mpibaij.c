@@ -3722,9 +3722,9 @@ static PetscErrorCode MatMPIDenseScatter(Mat A, Mat B, PetscInt Bbidx, Mat C, Ma
 
 static PetscErrorCode MatMPIBAIJ_MPIDenseDestroy(void *ctx)
 {
-  // DERIVE THE POINTER CORRECTLY: 
+  // DERIVE THE POINTER CORRECTLY:
   // ctx is actually &C->product->data, so we must dereference it.
-  MPIBAIJ_MPIDense *contents = *(MPIBAIJ_MPIDense **)ctx; 
+  MPIBAIJ_MPIDense *contents = *(MPIBAIJ_MPIDense **)ctx;
 
   PetscFunctionBegin;
   if (!contents) PetscFunctionReturn(PETSC_SUCCESS);
@@ -3751,7 +3751,7 @@ static PetscErrorCode MatMPIBAIJ_MPIDenseDestroy(void *ctx)
 
   /* 4. Free the main structure */
   PetscCall(PetscFree(contents));
-  
+
   // Clean up the caller's pointer so it doesn't point to dead memory
   *(MPIBAIJ_MPIDense **)ctx = NULL;
 
@@ -3794,8 +3794,7 @@ static PetscErrorCode MatMatMultNumeric_MPIBAIJ_MPIDense(Mat A, Mat B, Mat C)
   } else {
     Mat      Bb, Cb;
     PetscInt BN = B->cmap->N, n = contents->workB->cmap->n;
-    PetscCheck(n > 0, PETSC_COMM_SELF, PETSC_ERR_ARG_WRONG,
-               "Column block size %" PetscInt_FMT " must be positive", n);
+    PetscCheck(n > 0, PETSC_COMM_SELF, PETSC_ERR_ARG_WRONG, "Column block size %" PetscInt_FMT " must be positive", n);
     for (PetscInt i = 0; i < BN; i += n) {
       PetscCall(MatDenseGetSubMatrix(B, PETSC_DECIDE, PETSC_DECIDE, i, PetscMin(i + n, BN), &Bb));
       PetscCall(MatDenseGetSubMatrix(C, PETSC_DECIDE, PETSC_DECIDE, i, PetscMin(i + n, BN), &Cb));
@@ -3836,8 +3835,7 @@ static PetscErrorCode MatMatMultSymbolic_MPIBAIJ_MPIDense(Mat A, Mat B, PetscRea
   if (!cisdense) PetscCall(MatSetType(C, ((PetscObject)B)->type_name));
   PetscCall(MatGetLocalSize(C, &m, &n));
   PetscCall(MatGetSize(C, &M, &N));
-  if (m == PETSC_DECIDE || n == PETSC_DECIDE || M == PETSC_DECIDE || N == PETSC_DECIDE)
-    PetscCall(MatSetSizes(C, Am, B->cmap->n, A->rmap->N, BN));
+  if (m == PETSC_DECIDE || n == PETSC_DECIDE || M == PETSC_DECIDE || N == PETSC_DECIDE) PetscCall(MatSetSizes(C, Am, B->cmap->n, A->rmap->N, BN));
   PetscCall(MatSetBlockSizesFromMats(C, A, B));
   PetscCall(MatSetUp(C));
   PetscCall(MatDenseGetLDA(B, &blda));
@@ -3853,7 +3851,7 @@ static PetscErrorCode MatMatMultSymbolic_MPIBAIJ_MPIDense(Mat A, Mat B, PetscRea
   } else Bbn1 = BN;
 
   PetscInt Bbs = B->cmap->bs;
-  Bbn1 = Bbn1 / Bbs * Bbs;
+  Bbn1         = Bbn1 / Bbs * Bbs;
   if (Bbn1 > BN) Bbn1 = BN;
   PetscCallMPI(MPIU_Allreduce(&Bbn1, &Bbn, 1, MPIU_INT, MPI_MAX, comm));
 
@@ -3888,8 +3886,7 @@ static PetscErrorCode MatMatMultSymbolic_MPIBAIJ_MPIDense(Mat A, Mat B, PetscRea
 
   for (PetscMPIInt i = 0; i < nsends; i++) {
     PetscCall(PetscMPIIntCast(sstarts[i + 1] - sstarts[i], &nrows_to));
-    for (PetscInt j = 0; j < nrows_to; j++)
-      PetscCall(PetscMPIIntCast(sindices[sstarts[i] + j] * bs, &disp[j]));
+    for (PetscInt j = 0; j < nrows_to; j++) PetscCall(PetscMPIIntCast(sindices[sstarts[i] + j] * bs, &disp[j]));
     PetscCallMPI(MPI_Type_create_indexed_block(nrows_to, bs, disp, MPIU_SCALAR, &type1));
     PetscCallMPI(MPI_Type_create_resized(type1, 0, blda * sizeof(PetscScalar), &stype[i]));
     PetscCallMPI(MPI_Type_commit(&stype[i]));
@@ -3946,7 +3943,7 @@ static PetscErrorCode MatProductSetFromOptions_MPIBAIJ_MPIDense_AB(Mat C)
   }
 
   C->ops->matmultsymbolic = MatMatMultSymbolic_MPIBAIJ_MPIDense;
-  C->ops->productsymbolic = MatProductSymbolic_AB; 
+  C->ops->productsymbolic = MatProductSymbolic_AB;
 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
