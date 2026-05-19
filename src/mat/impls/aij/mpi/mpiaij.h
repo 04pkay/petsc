@@ -184,6 +184,8 @@ PETSC_INTERN PetscErrorCode MatSetPreallocationCOO_MPIAIJ(Mat, PetscCount, Petsc
 
 PETSC_INTERN PetscErrorCode MatGetCurrentMemType_MPIAIJ(Mat, PetscMemType *);
 
+PETSC_INTERN PetscErrorCode MatMPIDenseScatter_Private(VecScatter ctx, PetscInt nrows, PetscInt bs, Mat workB_in, Mat workB1_in, PetscInt cblda, MPI_Datatype *rtype, MPI_Datatype *stype, MPI_Request *swaits, MPI_Request *rwaits, Mat B, PetscInt Bbidx, Mat C, Mat *outworkB);
+
 /* compute apa = A[i,:]*P = Ad[i,:]*P_loc + Ao*[i,:]*P_oth using sparse axpy */
 #define AProw_scalable(i, ad, ao, p_loc, p_oth, api, apj, apa) \
   do { \
