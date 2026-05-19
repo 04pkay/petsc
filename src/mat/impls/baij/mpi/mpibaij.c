@@ -11,7 +11,7 @@ PETSC_INTERN PetscErrorCode MatConvert_MPIBAIJ_MPIBAIJXSMM(Mat, MatType, MatReus
 
 typedef struct {
   Mat           workB, workB1;
-  Mat           workC;
+  Mat           workC, workC1;
   MPI_Request  *rwaits, *swaits;
   PetscInt      nsends, nrecvs;
   MPI_Datatype *stype, *rtype;
@@ -3779,7 +3779,7 @@ static PetscErrorCode MatMatMultNumeric_MPIBAIJ_MPIDense(Mat A, Mat B, Mat C)
   } else PetscCall(MatProductReplaceMats(baij->A, bdense->A, NULL, cdense->A));
 
   /* Diagonal: baij->A * bdense->A -> cdense->A */
-  PetscCall(MatZeroEntries(cdense->A));
+  PetscCall(MatZeroEntries(cdense->A)); // TODO: Remove here and do it in baijxsmm numeric
   PetscCall(MatProductNumeric(cdense->A));
 
   if (contents->workB->cmap->n == B->cmap->N) {
@@ -3787,7 +3787,7 @@ static PetscErrorCode MatMatMultNumeric_MPIBAIJ_MPIDense(Mat A, Mat B, Mat C)
     if (baij->B->cmap->n > 0 && contents->workC) {
       /* Off-diagonal: baij->B * workB -> workC, then cdense->A += workC */
       PetscCall(MatProductReplaceMats(baij->B, workB, NULL, contents->workC));
-      PetscCall(MatZeroEntries(contents->workC));
+      PetscCall(MatZeroEntries(contents->workC)); // TODO: Remove here and do it in baijxsmm numeric
       PetscCall(MatProductNumeric(contents->workC));
       PetscCall(MatAXPY(cdense->A, 1.0, contents->workC, SAME_NONZERO_PATTERN));
     }
@@ -3795,16 +3795,25 @@ static PetscErrorCode MatMatMultNumeric_MPIBAIJ_MPIDense(Mat A, Mat B, Mat C)
     Mat      Bb, Cb;
     PetscInt BN = B->cmap->N, n = contents->workB->cmap->n;
     PetscCheck(n > 0, PETSC_COMM_SELF, PETSC_ERR_ARG_WRONG, "Column block size %" PetscInt_FMT " must be positive", n);
+    
     for (PetscInt i = 0; i < BN; i += n) {
-      PetscCall(MatDenseGetSubMatrix(B, PETSC_DECIDE, PETSC_DECIDE, i, PetscMin(i + n, BN), &Bb));
-      PetscCall(MatDenseGetSubMatrix(C, PETSC_DECIDE, PETSC_DECIDE, i, PetscMin(i + n, BN), &Cb));
+      PetscInt cols = PetscMin(n, BN - i); // Determine exactly how many columns this chunk has
+      
+      PetscCall(MatDenseGetSubMatrix(B, PETSC_DECIDE, PETSC_DECIDE, i, i + cols, &Bb));
+      PetscCall(MatDenseGetSubMatrix(C, PETSC_DECIDE, PETSC_DECIDE, i, i + cols, &Cb));
       PetscCall(MatMPIDenseScatter(A, Bb, (i + n) > BN, C, &workB));
-      if (baij->B->cmap->n > 0 && contents->workC) {
-        cdense = (Mat_MPIDense *)Cb->data;
-        PetscCall(MatProductReplaceMats(baij->B, workB, NULL, contents->workC));
-        PetscCall(MatZeroEntries(contents->workC));
-        PetscCall(MatProductNumeric(contents->workC));
-        PetscCall(MatAXPY(cdense->A, 1.0, contents->workC, SAME_NONZERO_PATTERN));
+      
+      if (baij->B->cmap->n > 0) {
+        // Dynamically select the workspace matched to the column count
+        Mat workC_current = (cols == n) ? contents->workC : contents->workC1;
+        
+        if (workC_current) {
+          cdense = (Mat_MPIDense *)Cb->data;
+          PetscCall(MatProductReplaceMats(baij->B, workB, NULL, workC_current));
+          PetscCall(MatZeroEntries(workC_current));
+          PetscCall(MatProductNumeric(workC_current));
+          PetscCall(MatAXPY(cdense->A, 1.0, workC_current, SAME_NONZERO_PATTERN));
+        }
       }
       PetscCall(MatDenseRestoreSubMatrix(B, &Bb));
       PetscCall(MatDenseRestoreSubMatrix(C, &Cb));
@@ -3923,7 +3932,18 @@ static PetscErrorCode MatMatMultSymbolic_MPIBAIJ_MPIDense(Mat A, Mat B, PetscRea
     PetscCall(MatProductSetType(contents->workC, MATPRODUCT_AB));
     PetscCall(MatProductSetFromOptions(contents->workC));
     PetscCall(MatProductSymbolic(contents->workC));
-  } else contents->workC = NULL;
+
+    if (contents->workB1) {
+      PetscCall(MatCreateSeqDense(PETSC_COMM_SELF, Am, Bbn1, NULL, &contents->workC1));
+      PetscCall(MatProductCreateWithMat(baij->B, contents->workB1, NULL, contents->workC1));
+      PetscCall(MatProductSetType(contents->workC1, MATPRODUCT_AB));
+      PetscCall(MatProductSetFromOptions(contents->workC1));
+      PetscCall(MatProductSymbolic(contents->workC1));
+    } else contents->workC1 = NULL;
+  } else {
+    contents->workC  = NULL;
+    contents->workC1 = NULL;
+  }
 
   C->product->data       = contents;
   C->product->destroy    = MatMPIBAIJ_MPIDenseDestroy;
