@@ -43,6 +43,7 @@ static PetscErrorCode XSMMSpMM_Numeric(Mat C)
   PetscCheck(pctx->kernel, PETSC_COMM_SELF, PETSC_ERR_LIB, "LIBXSMM kernel is NULL — JIT dispatch failed (unsupported arch or shape)");
 
   PetscCall(MatDenseGetArrayRead(B, &px));
+  PetscCall(MatZeroEntries(C)); // Ensure C is zeroed before accumulation
   PetscCall(MatDenseGetArray(C, &py));
 
   // Loop over rows of blocks
@@ -85,7 +86,6 @@ static PetscErrorCode XSMMSpMM_Symbolic(Mat C)
   PetscCall(MatSetType(C, MATSEQDENSE));
   PetscCall(MatSetUp(C));
   PetscCall(MatDenseGetLDA(C, &lda_C));
-  PetscCall(MatZeroEntries(C)); // Ensure C is zeroed before accumulation
 
   /* 3. Allcoate Data */
   PetscCall(PetscNew(&pctx));

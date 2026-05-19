@@ -3733,6 +3733,7 @@ static PetscErrorCode MatMPIBAIJ_MPIDenseDestroy(void *ctx)
   PetscCall(MatDestroy(&contents->workB));
   PetscCall(MatDestroy(&contents->workB1));
   PetscCall(MatDestroy(&contents->workC));
+  PetscCall(MatDestroy(&contents->workC1));
 
   /* 2. Free MPI Types */
   for (PetscInt i = 0; i < contents->nsends; i++) {
@@ -3779,7 +3780,6 @@ static PetscErrorCode MatMatMultNumeric_MPIBAIJ_MPIDense(Mat A, Mat B, Mat C)
   } else PetscCall(MatProductReplaceMats(baij->A, bdense->A, NULL, cdense->A));
 
   /* Diagonal: baij->A * bdense->A -> cdense->A */
-  PetscCall(MatZeroEntries(cdense->A)); // TODO: Remove here and do it in baijxsmm numeric
   PetscCall(MatProductNumeric(cdense->A));
 
   if (contents->workB->cmap->n == B->cmap->N) {
@@ -3787,7 +3787,6 @@ static PetscErrorCode MatMatMultNumeric_MPIBAIJ_MPIDense(Mat A, Mat B, Mat C)
     if (baij->B->cmap->n > 0 && contents->workC) {
       /* Off-diagonal: baij->B * workB -> workC, then cdense->A += workC */
       PetscCall(MatProductReplaceMats(baij->B, workB, NULL, contents->workC));
-      PetscCall(MatZeroEntries(contents->workC)); // TODO: Remove here and do it in baijxsmm numeric
       PetscCall(MatProductNumeric(contents->workC));
       PetscCall(MatAXPY(cdense->A, 1.0, contents->workC, SAME_NONZERO_PATTERN));
     }
