@@ -830,11 +830,10 @@ static PetscErrorCode DMPlexTransformSetUp_Cohesive(DMPlexTransform tr)
 static PetscErrorCode DMPlexTransformDestroy_Cohesive(DMPlexTransform tr)
 {
   DMPlexTransform_Cohesive *ex = (DMPlexTransform_Cohesive *)tr->data;
-  PetscInt                  ct;
 
   PetscFunctionBegin;
   if (ex->target) {
-    for (ct = 0; ct < DM_NUM_POLYTOPES * 2 * 100; ++ct) PetscCall(PetscFree4(ex->target[ct], ex->size[ct], ex->cone[ct], ex->ornt[ct]));
+    for (PetscInt ct = 0; ct < DM_NUM_POLYTOPES * 2 * 100; ++ct) PetscCall(PetscFree4(ex->target[ct], ex->size[ct], ex->cone[ct], ex->ornt[ct]));
   }
   PetscCall(PetscFree5(ex->Nt, ex->target, ex->size, ex->cone, ex->ornt));
   PetscCall(PetscFree(ex));
@@ -929,6 +928,11 @@ static PetscErrorCode DMPlexTransformCellTransform_Cohesive(DMPlexTransform tr, 
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
+/* Reorder the supports so that
+
+   Negative face support: [negative neighbor, cohesive]
+   Positive face support: [cohesive, positive neighbor]
+*/
 static PetscErrorCode OrderCohesiveSupport_Private(DM dm, PetscInt p)
 {
   const PetscInt *cone;

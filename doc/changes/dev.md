@@ -10,12 +10,15 @@
 
 ## General
 
+- Increase the minimum required CUDA Toolkit version to 11.4
 
 ## Configure/Build
 
 
 ## Sys
 
+- Add `PetscGetConfiguration()`
+- Add `PetscObjectViewSynchronizedFromOptions()`
 
 ## Event Logging
 
@@ -50,19 +53,22 @@
 
 ## Mat
 
-- Add `MATPRODUCT_PtAP` support for `MATDIAGONAL`
+- Add `MATPRODUCT_PtAP` support for `MATDIAGONAL` and `MATCONSTANTDIAGONAL`
+- Add `MatSeqAIJGetKokkosView()`, `MatSeqAIJRestoreKokkosView()`, `MatSeqAIJGetKokkosViewWrite()` and `MatSeqAIJRestoreKokkosViewWrite()` to the public API
 
 ## MatCoarsen
 
 
 ## PC
 
+- Add `PCGAMGSetProlongatorFilter()` and `PCGAMGGetProlongatorFilter()` to set/get the threshold for filtering small entries from the prolongator in `PCGAMG`
 
 ## KSP
 
 
 ## SNES
 
+- Change `SNESSetUp()` to not overwrite the NPC application context if one has previously been set on the NPC
 
 ## SNESLineSearch
 
@@ -72,6 +78,7 @@
 - Add `DMTSSetIFunctionPre()`
 - Add `TSDiscGradSetImplicitFormulation()`
 - Expose `TSDiscGradGetX0AndXdot()` and `TSDiscGradRestoreX0AndXdot()`
+- Add `TSIsImplicit()` that indicates if the `TSType` is implicit and uses `SNES` or `KSP`
 
 ## TAO
 
@@ -88,6 +95,7 @@
 
 ## DM
 
+- Change `DMLabelPropagatePush()` to take a reduce operator
 
 ## DMSwarm
 
@@ -108,6 +116,10 @@
 - Add `DMPlexRebalanceSharedLabelPoints()`
 - Add `DMPlexCheckLabel()` and `DMPlexReconcileLabel()`
 - Change CGNS viewer to use multi-component read/write interface for better performance
+- Add `DMPlexTransformOrderSupports()`
+- Add `DMPlexLabelCohesiveCheck()`
+- Add `DMPlexCheckOrientationLabel()`
+- Change `DMPlexLabelCohesiveComplete()` to remove split argument
 
 ## FE/FV
 

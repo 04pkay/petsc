@@ -3398,8 +3398,11 @@ PetscErrorCode SNESSetUp(SNES snes)
     PetscCall(SNESSetFunction(snes->npc, fpc, func, funcctx));
     PetscCall(SNESGetJacobian(snes, &j, &jpre, &jac, &jacctx));
     PetscCall(SNESSetJacobian(snes->npc, j, jpre, jac, jacctx));
-    PetscCall(SNESGetApplicationContext(snes, &appctx));
-    PetscCall(SNESSetApplicationContext(snes->npc, appctx));
+    PetscCall(SNESGetApplicationContext(snes->npc, &appctx));
+    if (!appctx) {
+      PetscCall(SNESGetApplicationContext(snes, &appctx));
+      PetscCall(SNESSetApplicationContext(snes->npc, appctx));
+    }
     PetscCall(SNESSetUseMatrixFree(snes->npc, mf_operator, mf));
     PetscCall(VecDestroy(&fpc));
 
@@ -3515,11 +3518,9 @@ PetscErrorCode SNESReset(SNES snes)
 @*/
 PetscErrorCode SNESConvergedReasonViewCancel(SNES snes)
 {
-  PetscInt i;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(snes, SNES_CLASSID, 1);
-  for (i = 0; i < snes->numberreasonviews; i++) {
+  for (PetscInt i = 0; i < snes->numberreasonviews; i++) {
     if (snes->reasonviewdestroy[i]) PetscCall((*snes->reasonviewdestroy[i])(&snes->reasonviewcontext[i]));
   }
   snes->numberreasonviews = 0;
@@ -4306,11 +4307,9 @@ PetscErrorCode SNESMonitorSet(SNES snes, PetscErrorCode (*f)(SNES snes, PetscInt
 @*/
 PetscErrorCode SNESMonitorCancel(SNES snes)
 {
-  PetscInt i;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(snes, SNES_CLASSID, 1);
-  for (i = 0; i < snes->numbermonitors; i++) {
+  for (PetscInt i = 0; i < snes->numbermonitors; i++) {
     if (snes->monitordestroy[i]) PetscCall((*snes->monitordestroy[i])(&snes->monitorcontext[i]));
   }
   snes->numbermonitors = 0;
@@ -4399,7 +4398,7 @@ PetscErrorCode SNESGetConvergedReason(SNES snes, SNESConvergedReason *reason)
 
 .seealso: [](ch_snes), `SNES`, `SNESGetConvergedReason()`
 @*/
-PetscErrorCode SNESGetConvergedReasonString(SNES snes, const char **strreason)
+PetscErrorCode SNESGetConvergedReasonString(SNES snes, const char *strreason[])
 {
   PetscFunctionBegin;
   PetscValidHeaderSpecific(snes, SNES_CLASSID, 1);
@@ -4487,12 +4486,11 @@ PetscErrorCode SNESSetConvergenceHistory(SNES snes, PetscReal a[], PetscInt its[
 PETSC_EXTERN mxArray *SNESGetConvergenceHistoryMatlab(SNES snes)
 {
   mxArray   *mat;
-  PetscInt   i;
   PetscReal *ar;
 
   mat = mxCreateDoubleMatrix(snes->conv_hist_len, 1, mxREAL);
   ar  = (PetscReal *)mxGetData(mat);
-  for (i = 0; i < snes->conv_hist_len; i++) ar[i] = snes->conv_hist[i];
+  for (PetscInt i = 0; i < snes->conv_hist_len; i++) ar[i] = snes->conv_hist[i];
   return mat;
 }
 #endif
@@ -4630,7 +4628,7 @@ PetscErrorCode SNESConvergedReasonView(SNES snes, PetscViewer viewer)
       DM       dm;
       Vec      u;
       PetscDS  prob;
-      PetscInt Nf, f;
+      PetscInt Nf;
       PetscErrorCode (**exactSol)(PetscInt, PetscReal, const PetscReal[], PetscInt, PetscScalar[], void *);
       void    **exactCtx;
       PetscReal error;
@@ -4640,7 +4638,7 @@ PetscErrorCode SNESConvergedReasonView(SNES snes, PetscViewer viewer)
       PetscCall(DMGetDS(dm, &prob));
       PetscCall(PetscDSGetNumFields(prob, &Nf));
       PetscCall(PetscMalloc2(Nf, &exactSol, Nf, &exactCtx));
-      for (f = 0; f < Nf; ++f) PetscCall(PetscDSGetExactSolution(prob, f, &exactSol[f], &exactCtx[f]));
+      for (PetscInt f = 0; f < Nf; ++f) PetscCall(PetscDSGetExactSolution(prob, f, &exactSol[f], &exactCtx[f]));
       PetscCall(DMComputeL2Diff(dm, 0.0, exactSol, exactCtx, u, &error));
       PetscCall(PetscFree2(exactSol, exactCtx));
       if (error < 1.0e-11) PetscCall(PetscViewerASCIIPrintf(viewer, "L_2 Error: < 1.0e-11\n"));
@@ -4773,7 +4771,6 @@ PetscErrorCode SNESConvergedReasonViewFromOptions(SNES snes)
 PetscErrorCode SNESSolve(SNES snes, Vec b, Vec x)
 {
   PetscBool flg;
-  PetscInt  grid;
   Vec       xcreated = NULL;
   DM        dm;
 
@@ -4864,8 +4861,8 @@ PetscErrorCode SNESSolve(SNES snes, Vec b, Vec x)
   }
   PetscCall(SNESViewFromOptions(snes, NULL, "-snes_view_pre"));
 
-  for (grid = 0; grid < snes->gridsequence; grid++) PetscCall(PetscViewerASCIIPushTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)snes))));
-  for (grid = 0; grid < snes->gridsequence + 1; grid++) {
+  for (PetscInt grid = 0; grid < snes->gridsequence; grid++) PetscCall(PetscViewerASCIIPushTab(PETSC_VIEWER_STDOUT_(PetscObjectComm((PetscObject)snes))));
+  for (PetscInt grid = 0; grid < snes->gridsequence + 1; grid++) {
     /* set solution vector */
     if (!grid) PetscCall(PetscObjectReference((PetscObject)x));
     PetscCall(VecDestroy(&snes->vec_sol));
@@ -5032,7 +5029,10 @@ PetscErrorCode SNESSetType(SNES snes, SNESType type)
 
   Level: intermediate
 
-.seealso: [](ch_snes), `SNESSetType()`, `SNESType`, `SNESSetFromOptions()`, `SNES`
+  Note:
+  `type` should not be retained for later use as it will be an invalid pointer if the `SNESType` of `snes` is changed.
+
+.seealso: [](ch_snes), `SNESSetType()`, `SNESType`, `SNESSetFromOptions()`, `SNES`, `PetscObjectTypeCompare()`, `PetscObjectTypeCompareAny()`
 @*/
 PetscErrorCode SNESGetType(SNES snes, SNESType *type)
 {

@@ -613,6 +613,9 @@ PetscErrorCode VecPointwiseMult(Vec w, Vec x, Vec y)
   `VecDuplicate()` DOES NOT COPY the vector entries, but rather allocates storage
   for the new vector.  Use `VecCopy()` to copy a vector.
 
+  PETSc `Vec` always have all zero entries when created with `VecDuplicate()` until routines such as `VecSet()` or `VecSetValues()`
+  are used to change the values. There is no reason to call `VecZeroEntries()` after creation.
+
   Use `VecDestroy()` to free the space. Use `VecDuplicateVecs()` to get several
   vectors.
 
@@ -686,6 +689,9 @@ PetscErrorCode VecDestroy(Vec *v)
   Use `VecDestroyVecs()` to free the space. Use `VecDuplicate()` to form a single
   vector.
 
+  PETSc `Vec` always have all zero entries when created with `VecDuplicateVecs()` until routines such as `VecSet()` or `VecSetValues()`
+  are used to change the values. There is no reason to call `VecZeroEntries()` after creation.
+
   Some implementations ensure that the arrays accessed by each vector are contiguous in memory. Certain `VecMDot()` and `VecMAXPY()`
   implementations utilize this property to use BLAS 2 operations for higher efficiency. This is especially useful in `KSPGMRES`, see
   `KSPGMRESSetPreAllocateVectors()`.
@@ -707,9 +713,7 @@ PetscErrorCode VecDuplicateVecs(Vec v, PetscInt m, Vec *V[])
   PetscUseTypeMethod(v, duplicatevecs, m, V);
 #if defined(PETSC_HAVE_VIENNACL) || defined(PETSC_HAVE_CUDA) || defined(PETSC_HAVE_HIP)
   if (v->boundtocpu && v->bindingpropagates) {
-    PetscInt i;
-
-    for (i = 0; i < m; i++) {
+    for (PetscInt i = 0; i < m; i++) {
       /* Since ops->duplicatevecs might itself propagate the value of boundtocpu,
        * avoid unnecessary overhead by only calling VecBindToCPU() if the vector isn't already bound. */
       if (!(*V)[i]->boundtocpu) {
@@ -1145,11 +1149,9 @@ PetscErrorCode VecDuplicateVecs_Default(Vec w, PetscInt m, Vec *V[])
 
 PetscErrorCode VecDestroyVecs_Default(PetscInt m, Vec v[])
 {
-  PetscInt i;
-
   PetscFunctionBegin;
   PetscAssertPointer(v, 2);
-  for (i = 0; i < m; i++) PetscCall(VecDestroy(&v[i]));
+  for (PetscInt i = 0; i < m; i++) PetscCall(VecDestroy(&v[i]));
   PetscCall(PetscFree(v));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1463,7 +1465,7 @@ PetscErrorCode VecSetRandom(Vec x, PetscRandom rctx)
 @*/
 PetscErrorCode VecSetRandomGaussian(Vec v, PetscRandom rng, PetscReal mean, PetscReal std_dev)
 {
-  PetscInt        n, i;
+  PetscInt        n;
   PetscScalar    *array;
   PetscReal       u1, u2;
   PetscReal       gauss_sample1, gauss_sample2, magnitude, theta;
@@ -1497,7 +1499,7 @@ PetscErrorCode VecSetRandomGaussian(Vec v, PetscRandom rng, PetscReal mean, Pets
       Z1 = sqrt(-2 * ln(U1)) * sin(2pi * U2)
     Then scale and shift to get desired mean and standard deviation.
   */
-  for (i = 0; i < n; i += 2) {
+  for (PetscInt i = 0; i < n; i += 2) {
     PetscInt retry_count = 0;
 
     /*
@@ -2077,7 +2079,7 @@ PetscErrorCode VecStashViewFromOptions(Vec obj, PetscObject bobj, const char nam
 PetscErrorCode VecStashView(Vec v, PetscViewer viewer)
 {
   PetscMPIInt rank;
-  PetscInt    i, j;
+  PetscInt    i;
   PetscBool   match;
   VecStash   *s;
   PetscScalar val;
@@ -2098,7 +2100,7 @@ PetscErrorCode VecStashView(Vec v, PetscViewer viewer)
   PetscCall(PetscViewerASCIISynchronizedPrintf(viewer, "[%d]Vector Block stash size %" PetscInt_FMT " block size %" PetscInt_FMT "\n", rank, s->n, s->bs));
   for (i = 0; i < s->n; i++) {
     PetscCall(PetscViewerASCIISynchronizedPrintf(viewer, "[%d] Element %" PetscInt_FMT " ", rank, s->idx[i]));
-    for (j = 0; j < s->bs; j++) {
+    for (PetscInt j = 0; j < s->bs; j++) {
       val = s->array[i * s->bs + j];
 #if defined(PETSC_USE_COMPLEX)
       PetscCall(PetscViewerASCIISynchronizedPrintf(viewer, "(%18.16e %18.16e) ", (double)PetscRealPart(val), (double)PetscImaginaryPart(val)));

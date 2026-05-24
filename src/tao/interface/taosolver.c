@@ -1683,11 +1683,9 @@ PetscErrorCode TaoMonitorSet(Tao tao, PetscErrorCode (*func)(Tao tao, PetscCtx c
 @*/
 PetscErrorCode TaoMonitorCancel(Tao tao)
 {
-  PetscInt i;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(tao, TAO_CLASSID, 1);
-  for (i = 0; i < tao->numbermonitors; i++) {
+  for (PetscInt i = 0; i < tao->numbermonitors; i++) {
     if (tao->monitordestroy[i]) PetscCall((*tao->monitordestroy[i])(&tao->monitorcontext[i]));
   }
   tao->numbermonitors = 0;
@@ -2617,7 +2615,10 @@ PetscErrorCode TaoGetSolutionStatus(Tao tao, PetscInt *its, PetscReal *f, PetscR
 
   Level: intermediate
 
-.seealso: [](ch_tao), `Tao`, `TaoType`, `TaoSetType()`
+  Note:
+  `type` should not be retained for later use as it will be an invalid pointer if the `TaoType` of `tao` is changed.
+
+.seealso: [](ch_tao), `Tao`, `TaoType`, `TaoSetType()`, `PetscObjectTypeCompare()`, `PetscObjectTypeCompareAny()`
 @*/
 PetscErrorCode TaoGetType(Tao tao, TaoType *type)
 {
@@ -2651,8 +2652,6 @@ PetscErrorCode TaoGetType(Tao tao, TaoType *type)
 @*/
 PetscErrorCode TaoMonitor(Tao tao, PetscInt its, PetscReal f, PetscReal res, PetscReal cnorm, PetscReal steplength)
 {
-  PetscInt i;
-
   PetscFunctionBegin;
   PetscValidHeaderSpecific(tao, TAO_CLASSID, 1);
   tao->fc       = f;
@@ -2664,7 +2663,7 @@ PetscErrorCode TaoMonitor(Tao tao, PetscInt its, PetscReal f, PetscReal res, Pet
     tao->gnorm0 = res;
   }
   PetscCall(VecLockReadPush(tao->solution));
-  for (i = 0; i < tao->numbermonitors; i++) PetscCall((*tao->monitor[i])(tao, tao->monitorcontext[i]));
+  for (PetscInt i = 0; i < tao->numbermonitors; i++) PetscCall((*tao->monitor[i])(tao, tao->monitorcontext[i]));
   PetscCall(VecLockReadPop(tao->solution));
   PetscFunctionReturn(PETSC_SUCCESS);
 }

@@ -3794,7 +3794,7 @@ PetscErrorCode MatSolve(Mat mat, Vec b, Vec x)
 static PetscErrorCode MatMatSolve_Basic(Mat A, Mat B, Mat X, PetscBool trans)
 {
   Vec      b, x;
-  PetscInt N, i;
+  PetscInt N;
   PetscErrorCode (*f)(Mat, Vec, Vec);
   PetscBool Abound, Bneedconv = PETSC_FALSE, Xneedconv = PETSC_FALSE;
 
@@ -3819,7 +3819,7 @@ static PetscErrorCode MatMatSolve_Basic(Mat A, Mat B, Mat X, PetscBool trans)
   if (Xneedconv) PetscCall(MatConvert(X, MATDENSEHIP, MAT_INPLACE_MATRIX, &X));
 #endif
   PetscCall(MatGetSize(B, NULL, &N));
-  for (i = 0; i < N; i++) {
+  for (PetscInt i = 0; i < N; i++) {
     PetscCall(MatDenseGetColumnVecRead(B, i, &b));
     PetscCall(MatDenseGetColumnVecWrite(X, i, &x));
     PetscCall((*f)(A, b, x));
@@ -9732,6 +9732,9 @@ PetscErrorCode MatStashGetInfo(Mat mat, PetscInt *nstash, PetscInt *reallocs, Pe
   The `VecType` of the created vectors is determined by the `MatType` of `mat`. This can be overridden by using `MatSetVecType()` or the option `-mat_vec_type`.
 
   These are new vectors which are not owned by the `mat`, they should be destroyed with `VecDestroy()` when no longer needed.
+
+  PETSc `Vec` always have all zero entries when created with `MatCreateVecs()` until routines such as `VecSet()` or `VecSetValues()`
+  are used to change the values. There is no reason to call `VecZeroEntries()` after creation.
 
 .seealso: [](ch_matrices), `Mat`, `Vec`, `VecCreate()`, `VecDestroy()`, `DMCreateGlobalVector()`, `MatSetVecType()`
 @*/

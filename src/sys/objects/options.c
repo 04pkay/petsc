@@ -1784,11 +1784,12 @@ PetscErrorCode PetscOptionsHasName(PetscOptions options, const char pre[], const
   Level: advanced
 
   Notes:
-  The array and each entry in the array should be freed with `PetscFree()`
+  The string should be freed with `PetscFree()`
 
   Each process may have different values depending on how the options were inserted into the database
 
-.seealso: `PetscOptionsAllUsed()`, `PetscOptionsView()`, `PetscOptionsPush()`, `PetscOptionsPop()`
+.seealso: `PetscOptionsAllUsed()`, `PetscOptionsView()`, `PetscOptionsPush()`, `PetscOptionsPop()`,
+          `PetscOptionsLeftGet()`
 @*/
 PetscErrorCode PetscOptionsGetAll(PetscOptions options, char *copts[]) PeNS
 {
@@ -1921,13 +1922,12 @@ PetscErrorCode PetscOptionsAllUsed(PetscOptions options, PetscInt *N)
 @*/
 PetscErrorCode PetscOptionsLeft(PetscOptions options)
 {
-  PetscInt     i;
   PetscInt     cnt = 0;
   PetscOptions toptions;
 
   PetscFunctionBegin;
   toptions = options ? options : defaultoptions;
-  for (i = 0; i < toptions->N; i++) {
+  for (PetscInt i = 0; i < toptions->N; i++) {
     if (!toptions->used[i]) {
       if (PetscCIOption(toptions->names[i])) continue;
       if (toptions->values[i]) {
@@ -1973,7 +1973,7 @@ PetscErrorCode PetscOptionsLeft(PetscOptions options)
 @*/
 PetscErrorCode PetscOptionsLeftGet(PetscOptions options, PetscInt *N, char **names[], char **values[])
 {
-  PetscInt i, n;
+  PetscInt n;
 
   PetscFunctionBegin;
   if (N) PetscAssertPointer(N, 2);
@@ -1983,7 +1983,7 @@ PetscErrorCode PetscOptionsLeftGet(PetscOptions options, PetscInt *N, char **nam
 
   /* The number of unused PETSc options */
   n = 0;
-  for (i = 0; i < options->N; i++) {
+  for (PetscInt i = 0; i < options->N; i++) {
     if (PetscCIOption(options->names[i])) continue;
     if (!options->used[i]) n++;
   }
@@ -1993,7 +1993,7 @@ PetscErrorCode PetscOptionsLeftGet(PetscOptions options, PetscInt *N, char **nam
 
   n = 0;
   if (names || values) {
-    for (i = 0; i < options->N; i++) {
+    for (PetscInt i = 0; i < options->N; i++) {
       if (!options->used[i]) {
         if (PetscCIOption(options->names[i])) continue;
         if (names) (*names)[n] = options->names[i];
@@ -2515,11 +2515,10 @@ PetscErrorCode PetscOptionsGetEList(PetscOptions options, const char pre[], cons
   size_t    alen, len = 0, tlen = 0;
   char     *svalue;
   PetscBool aset, flg = PETSC_FALSE;
-  PetscInt  i;
 
   PetscFunctionBegin;
   PetscAssertPointer(opt, 3);
-  for (i = 0; i < ntext; i++) {
+  for (PetscInt i = 0; i < ntext; i++) {
     PetscCall(PetscStrlen(list[i], &alen));
     if (alen > len) len = alen;
     tlen += len + 1;
@@ -2534,7 +2533,7 @@ PetscErrorCode PetscOptionsGetEList(PetscOptions options, const char pre[], cons
 
       PetscCall(PetscMalloc1(tlen, &avail));
       avail[0] = '\0';
-      for (i = 0; i < ntext; i++) {
+      for (PetscInt i = 0; i < ntext; i++) {
         PetscCall(PetscStrlcat(avail, list[i], tlen));
         PetscCall(PetscStrlcat(avail, " ", tlen));
       }

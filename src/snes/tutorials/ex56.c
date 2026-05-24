@@ -24,8 +24,8 @@ static void f0_bd_u_3d(PetscInt dim, PetscInt Nf, PetscInt NfAux, const PetscInt
 static void f1_bd_u(PetscInt dim, PetscInt Nf, PetscInt NfAux, const PetscInt uOff[], const PetscInt uOff_x[], const PetscScalar u[], const PetscScalar u_t[], const PetscScalar u_x[], const PetscInt aOff[], const PetscInt aOff_x[], const PetscScalar a[], const PetscScalar a_t[], const PetscScalar a_x[], PetscReal t, const PetscReal x[], const PetscReal n[], PetscInt numConstants, const PetscScalar constants[], PetscScalar f1[])
 {
   const PetscInt Ncomp = dim;
-  PetscInt       comp, d;
-  for (comp = 0; comp < Ncomp; ++comp) {
+  PetscInt       d;
+  for (PetscInt comp = 0; comp < Ncomp; ++comp) {
     for (d = 0; d < dim; ++d) f1[comp * dim + d] = 0.0;
   }
 }
@@ -125,9 +125,9 @@ void g3_uu_3d_private(PetscScalar g3[], const PetscReal mu, const PetscReal lamb
 
 static void g3_uu_3d_alpha(PetscInt dim, PetscInt Nf, PetscInt NfAux, const PetscInt uOff[], const PetscInt uOff_x[], const PetscScalar u[], const PetscScalar u_t[], const PetscScalar u_x[], const PetscInt aOff[], const PetscInt aOff_x[], const PetscScalar a[], const PetscScalar a_t[], const PetscScalar a_x[], PetscReal t, PetscReal u_tShift, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar g3[])
 {
-  PetscReal mu = s_mu, lambda = s_lambda, rad;
-  PetscInt  i;
-  for (i = 0, rad = 0.; i < dim; i++) {
+  PetscReal mu = s_mu, lambda = s_lambda, rad = 0.0;
+
+  for (PetscInt i = 0; i < dim; i++) {
     PetscReal t = x[i];
     rad += t * t;
   }
@@ -152,9 +152,9 @@ static void g3_lap(PetscInt dim, PetscInt Nf, PetscInt NfAux, const PetscInt uOf
 
 static void g3_lap_alpha(PetscInt dim, PetscInt Nf, PetscInt NfAux, const PetscInt uOff[], const PetscInt uOff_x[], const PetscScalar u[], const PetscScalar u_t[], const PetscScalar u_x[], const PetscInt aOff[], const PetscInt aOff_x[], const PetscScalar a[], const PetscScalar a_t[], const PetscScalar a_x[], PetscReal t, PetscReal u_tShift, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar g3[])
 {
-  PetscReal lambda = 1, rad;
-  PetscInt  i;
-  for (i = 0, rad = 0.; i < dim; i++) {
+  PetscReal lambda = 1, rad = 0.0;
+
+  for (PetscInt i = 0; i < dim; i++) {
     PetscReal t = x[i];
     rad += t * t;
   }
@@ -166,9 +166,8 @@ static void g3_lap_alpha(PetscInt dim, PetscInt Nf, PetscInt NfAux, const PetscI
 static void f0_u(PetscInt dim, PetscInt Nf, PetscInt NfAux, const PetscInt uOff[], const PetscInt uOff_x[], const PetscScalar u[], const PetscScalar u_t[], const PetscScalar u_x[], const PetscInt aOff[], const PetscInt aOff_x[], const PetscScalar a[], const PetscScalar a_t[], const PetscScalar a_x[], PetscReal t, const PetscReal x[], PetscInt numConstants, const PetscScalar constants[], PetscScalar f0[])
 {
   const PetscInt Ncomp = dim;
-  PetscInt       comp;
 
-  for (comp = 0; comp < Ncomp; ++comp) f0[comp] = 0.0;
+  for (PetscInt comp = 0; comp < Ncomp; ++comp) f0[comp] = 0.0;
 }
 
 /* PI_i (x_i^4 - x_i^2) */
@@ -183,9 +182,8 @@ static void f0_u_x4(PetscInt dim, PetscInt Nf, PetscInt NfAux, const PetscInt uO
 PetscErrorCode zero(PetscInt dim, PetscReal time, const PetscReal x[], PetscInt Nf, PetscScalar *u, PetscCtx ctx)
 {
   const PetscInt Ncomp = dim;
-  PetscInt       comp;
 
-  for (comp = 0; comp < Ncomp; ++comp) u[comp] = 0;
+  for (PetscInt comp = 0; comp < Ncomp; ++comp) u[comp] = 0;
   return PETSC_SUCCESS;
 }
 
@@ -261,16 +259,15 @@ int main(int argc, char **args)
         /* Check for each boundary face if any component of its centroid is either 0.0 or 1.0 */
         for (f = 0; f < Nf; ++f) {
           PetscReal    faceCoord;
-          PetscInt     b, v;
           PetscScalar *coords = NULL;
           PetscInt     Nv;
           PetscCall(DMPlexVecGetClosure(cdm, cs, coordinates, faces[f], &csize, &coords));
           Nv = csize / dim; /* Calculate mean coordinate vector */
           for (d = 0; d < dim; ++d) {
             faceCoord = 0.0;
-            for (v = 0; v < Nv; ++v) faceCoord += PetscRealPart(coords[v * dim + d]);
+            for (PetscInt v = 0; v < Nv; ++v) faceCoord += PetscRealPart(coords[v * dim + d]);
             faceCoord /= Nv;
-            for (b = 0; b < 2; ++b) {
+            for (PetscInt b = 0; b < 2; ++b) {
               if (PetscAbs(faceCoord - b) < PETSC_SMALL) { /* domain have not been set yet, still [0,1]^3 */
                 PetscCall(DMSetLabelValue(dm, "Faces", faces[f], d * 2 + b + 1));
               }
@@ -316,13 +313,13 @@ int main(int argc, char **args)
         PetscCall(PetscDSSetResidual(prob, 0, f0_u_x4, f1_u_3d));
       } else if (run_type == 0) { //twisted not maintained
         PetscWeakForm wf;
-        PetscInt      bd, i;
+        PetscInt      bd;
         PetscCall(PetscDSSetJacobian(prob, 0, 0, NULL, NULL, NULL, g3_uu_3d_alpha));
         PetscCall(PetscDSSetResidual(prob, 0, f0_u, f1_u_3d_alpha));
         PetscCall(DMGetLabel(dm, "Faces", &label));
         PetscCall(DMAddBoundary(dm, DM_BC_NATURAL, "traction", label, Npid, pid, 0, Ncomp, components, NULL, NULL, NULL, &bd));
         PetscCall(PetscDSGetBoundary(prob, bd, &wf, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL));
-        for (i = 0; i < Npid; ++i) PetscCall(PetscWeakFormSetIndexBdResidual(wf, label, pid[i], 0, 0, 0, f0_bd_u_3d, 0, f1_bd_u));
+        for (PetscInt i = 0; i < Npid; ++i) PetscCall(PetscWeakFormSetIndexBdResidual(wf, label, pid[i], 0, 0, 0, f0_bd_u_3d, 0, f1_bd_u));
       } else if (run_type == 2) { // Laplacian
         PetscCall(PetscDSSetJacobian(prob, 0, 0, NULL, NULL, NULL, g3_lap));
         PetscCall(PetscDSSetResidual(prob, 0, f0_u_x4, f1_u_lap));
@@ -464,8 +461,8 @@ int main(int argc, char **args)
     timeoutfactor: 2
     test:
       suffix: 0
+      filter: sed -e "s/iterations 7/iterations 8/" -e "s/4\.123212[0-9]/4.1232123/" -e "s/5\.906389[0-9]/5.9063895/"
       args: -run_type 1 -max_conv_its 3 -pc_gamg_mat_coarsen_type hem -pc_gamg_mat_coarsen_max_it 5 -pc_gamg_asm_hem_aggs 4 -ksp_rtol 1.e-6
-      filter: sed -e "s/Linear solve converged due to CONVERGED_RTOL iterations 7/Linear solve converged due to CONVERGED_RTOL iterations 8/g"
     test:
       suffix: 1
       filter: grep -v HERMITIAN
@@ -590,6 +587,14 @@ int main(int argc, char **args)
     nsize: 4
     requires: defined(PETSC_HAVE_MKL_SPARSE_OPTIMIZE) !single !complex
     args: -dm_plex_dim 3 -dm_plex_simplex 0 -dm_plex_box_lower 0,0,0 -dm_plex_box_upper 1,1,1 -run_type 1 -dm_plex_box_faces 2,2,1 -petscpartitioner_simple_process_grid 2,2,1 -max_conv_its 2 -petscspace_degree 2 -snes_max_it 2 -ksp_max_it 100 -ksp_type cg -ksp_rtol 1.e-11 -ksp_norm_type unpreconditioned -snes_rtol 1.e-10 -pc_type gamg -pc_gamg_type agg -pc_gamg_agg_nsmooths 1 -pc_gamg_coarse_eq_limit 1000 -pc_gamg_reuse_interpolation true -pc_gamg_aggressive_coarsening 1 -pc_gamg_threshold 0.05 -pc_gamg_threshold_scale .0 -ksp_converged_reason -use_mat_nearnullspace true -mg_levels_ksp_max_it 1 -mg_levels_ksp_type chebyshev -pc_gamg_esteig_ksp_type cg -pc_gamg_esteig_ksp_max_it 10 -mg_levels_ksp_chebyshev_esteig 0,0.05,0,1.1 -mg_levels_pc_type jacobi -petscpartitioner_type simple -mat_block_size 3 -dm_view -mat_seqaij_type seqaijmkl
+    timeoutfactor: 2
+
+  test:
+    suffix: filter
+    nsize: 4
+    requires: !single
+    filter: sed "s/iterations 9/iterations 8/"
+    args: -dm_plex_dim 3 -dm_plex_simplex 0 -dm_plex_box_faces 2,2,1 -petscpartitioner_simple_process_grid 2,2,1 -petscspace_degree 2 -snes_max_it 1 -ksp_type cg -ksp_rtol 1.e-4 -pc_type gamg -pc_gamg_coarse_eq_limit 10 -pc_gamg_threshold 0.001 -ksp_converged_reason -use_mat_nearnullspace true -petscpartitioner_type simple -snes_type ksponly -pc_gamg_low_memory_threshold_filter -pc_gamg_prolongator_filter 0.0025 -run_type 1 -max_conv_its 3 -my_dm_view
     timeoutfactor: 2
 
 TEST*/

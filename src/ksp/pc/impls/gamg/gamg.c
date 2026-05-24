@@ -871,9 +871,8 @@ static PetscErrorCode PCSetUp_GAMG(PC pc)
           PetscCall(PCASMSetLocalSubdomains(subpc, 1, NULL, &is));
           PetscCall(ISDestroy(&is));
         } else {
-          PetscInt kk;
           PetscCall(PCASMSetLocalSubdomains(subpc, sz, iss, NULL));
-          for (kk = 0; kk < sz; kk++) PetscCall(ISDestroy(&iss[kk]));
+          for (PetscInt kk = 0; kk < sz; kk++) PetscCall(ISDestroy(&iss[kk]));
           PetscCall(PetscFree(iss));
         }
         ASMLocalIDsArr[level] = NULL;
@@ -1934,8 +1933,9 @@ PETSC_EXTERN PetscErrorCode PCCreate_GAMG(PC pc)
   PetscCall(PetscNew(&pc_gamg->ops));
 
   /* these should be in subctx but repartitioning needs simple arrays */
-  pc_gamg->data_sz = 0;
-  pc_gamg->data    = NULL;
+  pc_gamg->prolongator_filter = 0.0;
+  pc_gamg->data_sz            = 0;
+  pc_gamg->data               = NULL;
 
   /* overwrite the pointers of PCMG by the functions of base class PCGAMG */
   pc->ops->setfromoptions = PCSetFromOptions_GAMG;
@@ -1998,8 +1998,6 @@ PETSC_EXTERN PetscErrorCode PCCreate_GAMG(PC pc)
 @*/
 PetscErrorCode PCGAMGInitializePackage(void)
 {
-  PetscInt l;
-
   PetscFunctionBegin;
   if (PCGAMGPackageInitialized) PetscFunctionReturn(PETSC_SUCCESS);
   PCGAMGPackageInitialized = PETSC_TRUE;
@@ -2025,7 +2023,7 @@ PetscErrorCode PCGAMGInitializePackage(void)
   /* PetscCall(PetscLogEventRegister("   GAMG Inv-Srt", PC_CLASSID, &petsc_gamg_setup_events[SET13])); */
   /* PetscCall(PetscLogEventRegister("   GAMG Move A", PC_CLASSID, &petsc_gamg_setup_events[SET14])); */
   /* PetscCall(PetscLogEventRegister("   GAMG Move P", PC_CLASSID, &petsc_gamg_setup_events[SET15])); */
-  for (l = 0; l < PETSC_MG_MAXLEVELS; l++) {
+  for (PetscInt l = 0; l < PETSC_MG_MAXLEVELS; l++) {
     char ename[32];
 
     PetscCall(PetscSNPrintf(ename, sizeof(ename), "PCGAMG Squ l%02" PetscInt_FMT, l));

@@ -742,7 +742,7 @@ PetscErrorCode KSPMonitorErrorDrawLG(KSP ksp, PetscInt n, PetscReal rnorm, Petsc
   Vec                sol;
   KSPConvergedReason reason;
   PetscReal         *x, *errors;
-  PetscInt           Nf, f;
+  PetscInt           Nf;
 
   PetscFunctionBegin;
   PetscValidHeaderSpecific(viewer, PETSC_VIEWER_CLASSID, 4);
@@ -758,7 +758,7 @@ PetscErrorCode KSPMonitorErrorDrawLG(KSP ksp, PetscInt n, PetscReal rnorm, Petsc
 
   PetscCall(PetscViewerPushFormat(viewer, format));
   if (!n) PetscCall(PetscDrawLGReset(lg));
-  for (f = 0; f < Nf; ++f) {
+  for (PetscInt f = 0; f < Nf; ++f) {
     x[f]      = (PetscReal)n;
     errors[f] = errors[f] > 0.0 ? PetscLog10Real(errors[f]) : -15.;
   }
@@ -796,13 +796,13 @@ PetscErrorCode KSPMonitorErrorDrawLGCreate(PetscViewer viewer, PetscViewerFormat
   KSP      ksp = (KSP)ctx;
   DM       dm;
   char   **names;
-  PetscInt Nf, f;
+  PetscInt Nf;
 
   PetscFunctionBegin;
   PetscCall(KSPGetDM(ksp, &dm));
   PetscCall(DMGetNumFields(dm, &Nf));
   PetscCall(PetscMalloc1(Nf + 1, &names));
-  for (f = 0; f < Nf; ++f) {
+  for (PetscInt f = 0; f < Nf; ++f) {
     PetscObject disc;
     const char *fname;
     char        lname[PETSC_MAX_PATH_LEN];
@@ -817,7 +817,7 @@ PetscErrorCode KSPMonitorErrorDrawLGCreate(PetscViewer viewer, PetscViewerFormat
   PetscCall(PetscViewerAndFormatCreate(viewer, format, vf));
   (*vf)->data = ctx;
   PetscCall(PetscViewerMonitorLGSetUp(viewer, NULL, NULL, "Log Error Norm", Nf + 1, (const char **)names, PETSC_DECIDE, PETSC_DECIDE, 400, 300));
-  for (f = 0; f <= Nf; ++f) PetscCall(PetscFree(names[f]));
+  for (PetscInt f = 0; f <= Nf; ++f) PetscCall(PetscFree(names[f]));
   PetscCall(PetscFree(names));
   PetscFunctionReturn(PETSC_SUCCESS);
 }
@@ -1753,6 +1753,9 @@ PetscErrorCode KSPBuildResidualDefault(KSP ksp, Vec t, Vec v, Vec *V)
   vector has as many elements as the matrix has rows, see `MatSetSizes()` for details on the layout of the vectors.
 
   The vectors are new vectors that are not owned by the `KSP`, they should be destroyed with calls to `VecDestroyVecs()` when no longer needed.
+
+  PETSc `Vec` always have all zero entries when created with `KSPCreateVecs()` until routines such as `VecSet()` or `VecSetValues()`
+  are used to change the values. There is no reason to call `VecZeroEntries()` after creation.
 
   Developer Note:
   First tries to duplicate the rhs and solution vectors of the `KSP`, if they do not exist tries to get them from the matrix with `MatCreateVecs()`, if
