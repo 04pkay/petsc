@@ -34,7 +34,6 @@ class Configure(config.package.Package):
     args += ' CXX="' + self.getCompiler('Cxx') + '"'
 
     if is_arm_mac:
-        # // changed: added STATIC=1 to ensure we get the .a file PETSc expects
         args += ' PLATFORM=1 JIT=1 STATIC=1'
     
     self.logPrintBox('Compiling LIBXSMM; this may take several minutes')

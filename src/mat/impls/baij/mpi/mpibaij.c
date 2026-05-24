@@ -3671,20 +3671,16 @@ static PetscErrorCode MatMPIDenseScatter(Mat A, Mat B, PetscInt Bbidx, Mat C, Ma
 
 static PetscErrorCode MatMPIBAIJ_MPIDenseDestroy(void *ctx)
 {
-  // DERIVE THE POINTER CORRECTLY:
-  // ctx is actually &C->product->data, so we must dereference it.
   MPIBAIJ_MPIDense *contents = *(MPIBAIJ_MPIDense **)ctx;
 
   PetscFunctionBegin;
   if (!contents) PetscFunctionReturn(PETSC_SUCCESS);
 
-  /* 1. Destroy work matrices first (Safe cleanup) */
   PetscCall(MatDestroy(&contents->workB));
   PetscCall(MatDestroy(&contents->workB1));
   PetscCall(MatDestroy(&contents->workC));
   PetscCall(MatDestroy(&contents->workC1));
 
-  /* 2. Free MPI Types */
   for (PetscInt i = 0; i < contents->nsends; i++) {
     if (contents->stype[i] != MPI_DATATYPE_NULL) {
       PetscCallMPI(MPI_Type_free(&contents->stype[i]));
@@ -3696,13 +3692,8 @@ static PetscErrorCode MatMPIBAIJ_MPIDenseDestroy(void *ctx)
     }
   }
 
-  /* 3. Free the grouped array */
   PetscCall(PetscFree4(contents->stype, contents->rtype, contents->rwaits, contents->swaits));
-
-  /* 4. Free the main structure */
   PetscCall(PetscFree(contents));
-
-  // Clean up the caller's pointer so it doesn't point to dead memory
   *(MPIBAIJ_MPIDense **)ctx = NULL;
 
   PetscFunctionReturn(PETSC_SUCCESS);
@@ -3745,14 +3736,14 @@ static PetscErrorCode MatMatMultNumeric_MPIBAIJ_MPIDense(Mat A, Mat B, Mat C)
     PetscCheck(n > 0, PETSC_COMM_SELF, PETSC_ERR_ARG_WRONG, "Column block size %" PetscInt_FMT " must be positive", n);
     
     for (PetscInt i = 0; i < BN; i += n) {
-      PetscInt cols = PetscMin(n, BN - i); // Determine exactly how many columns this chunk has
+      PetscInt cols = PetscMin(n, BN - i);
       
       PetscCall(MatDenseGetSubMatrix(B, PETSC_DECIDE, PETSC_DECIDE, i, i + cols, &Bb));
       PetscCall(MatDenseGetSubMatrix(C, PETSC_DECIDE, PETSC_DECIDE, i, i + cols, &Cb));
       PetscCall(MatMPIDenseScatter(A, Bb, (i + n) > BN, C, &workB));
       
       if (baij->B->cmap->n > 0) {
-        // Dynamically select the workspace matched to the column count
+        /* Dynamically select the workspace matched to the column count */
         Mat workC_current = (cols == n) ? contents->workC : contents->workC1;
         
         if (workC_current) {
@@ -3905,7 +3896,6 @@ static PetscErrorCode MatProductSetFromOptions_MPIBAIJ_MPIDense_AB(Mat C)
   Mat          A = product->A, B = product->B;
 
   PetscFunctionBegin;
-  /* 1. Dimension Validation */
   if (A->cmap->rstart != B->rmap->rstart || A->cmap->rend != B->rmap->rend) {
     SETERRQ(PETSC_COMM_SELF, PETSC_ERR_ARG_SIZ, "Matrix local dimensions are incompatible, (%" PetscInt_FMT ", %" PetscInt_FMT ") != (%" PetscInt_FMT ",%" PetscInt_FMT ")", A->cmap->rstart, A->cmap->rend, B->rmap->rstart, B->rmap->rend);
   }
