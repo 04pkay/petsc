@@ -32,7 +32,6 @@ static PetscErrorCode XSMMSpMM_Numeric(Mat C)
   PetscInt           num_block_rows = ctx->mbs;
 
   PetscFunctionBegin;
-
   bs = block_size;
 
   PetscCheck(pctx->kernel, PETSC_COMM_SELF, PETSC_ERR_LIB, "LIBXSMM kernel is NULL — JIT dispatch failed (unsupported arch or shape)");
@@ -69,7 +68,6 @@ static PetscErrorCode XSMMSpMM_Symbolic(Mat C)
   XSMM_ProductCtx *pctx;
 
   PetscFunctionBegin;
-
   m          = A->rmap->n;
   block_size = A->rmap->bs;
   PetscCall(MatGetLocalSize(B, NULL, &k_B));
@@ -92,7 +90,6 @@ static PetscErrorCode XSMMSpMM_Symbolic(Mat C)
   C->product->data       = pctx;
   C->product->destroy    = (PetscErrorCode (*)(void *))XSMMSpMM_Destroy;
   C->ops->productnumeric = XSMMSpMM_Numeric;
-
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -112,7 +109,6 @@ static PetscErrorCode MatProductSetFromOptions_SeqBAIJXSMM(Mat C)
   }
   PetscCall(PetscObjectTypeCompare((PetscObject)B, MATSEQDENSE, &isdense));
   C->ops->productsymbolic = XSMMSpMM_Symbolic;
-
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

@@ -3695,7 +3695,6 @@ static PetscErrorCode MatMPIBAIJ_MPIDenseDestroy(void *ctx)
   PetscCall(PetscFree4(contents->stype, contents->rtype, contents->rwaits, contents->swaits));
   PetscCall(PetscFree(contents));
   *(MPIBAIJ_MPIDense **)ctx = NULL;
-
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 
@@ -3902,7 +3901,6 @@ static PetscErrorCode MatProductSetFromOptions_MPIBAIJ_MPIDense_AB(Mat C)
 
   C->ops->matmultsymbolic = MatMatMultSymbolic_MPIBAIJ_MPIDense;
   C->ops->productsymbolic = MatProductSymbolic_AB;
-
   PetscFunctionReturn(PETSC_SUCCESS);
 }
 

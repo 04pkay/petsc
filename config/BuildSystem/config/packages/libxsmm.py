@@ -4,7 +4,7 @@ import os
 class Configure(config.package.Package):
   def __init__(self, framework):
     config.package.Package.__init__(self, framework)
-    self.gitcommit         = 'origin/main' 
+    self.gitcommit         = 'c14cbc6f8bc7964f8c5190a3a16b8cace03e5889'
     self.download          = ['git://https://github.com/libxsmm/libxsmm.git']
     self.downloaddirnames  = ['libxsmm']
     self.includes          = ['libxsmm.h']
@@ -35,17 +35,17 @@ class Configure(config.package.Package):
 
     if is_arm_mac:
         args += ' PLATFORM=1 JIT=1 STATIC=1'
-    
+
     self.logPrintBox('Compiling LIBXSMM; this may take several minutes')
-    
+
     make_cmd = 'cd ' + self.packageDir + ' && ' + self.make.make + ' -j8 ' + args + ' install'
-    
+
     output, err, ret = config.package.Package.executeShellCommand(
       make_cmd,
       timeout = 600,
       log     = self.log
     )
-    
+
     if ret:
       raise RuntimeError('Error building/installing LIBXSMM:\n' + output + err)
 
