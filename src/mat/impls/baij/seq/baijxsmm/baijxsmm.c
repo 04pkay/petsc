@@ -25,11 +25,11 @@ static PetscErrorCode XSMMSpMM_Numeric(Mat C)
   PetscInt           i, j, row_start, row_end, col_idx;
   PetscInt           bs;
   libxsmm_gemm_param param;
-  PetscScalar    *v              = ctx->a;
-  const PetscInt *col            = ctx->j;
-  const PetscInt *ptr            = ctx->i;
-  PetscInt        block_size     = A->rmap->bs;
-  PetscInt        num_block_rows = ctx->mbs;
+  PetscScalar       *v              = ctx->a;
+  const PetscInt    *col            = ctx->j;
+  const PetscInt    *ptr            = ctx->i;
+  PetscInt           block_size     = A->rmap->bs;
+  PetscInt           num_block_rows = ctx->mbs;
 
   PetscFunctionBegin;
 
@@ -83,7 +83,8 @@ static PetscErrorCode XSMMSpMM_Symbolic(Mat C)
   pctx->K = k_B;
 
   /* Check that lda*(K+1)*sizeof(double) fits in uint32, the one-past-end value lda*K*8 must not overflow uint32. Otherwise the kernel will crash */
-  PetscCheck((PetscUInt64)lda * (pctx->K + 1) * sizeof(double) <= PETSC_UINT32_MAX, PETSC_COMM_SELF, PETSC_ERR_SUP, "LIBXSMM JIT cannot handle lda=%" PetscInt_FMT " with K=%" PetscInt_FMT ": lda*(K+1)*8=%" PetscUInt64_FMT " exceeds uint32 max (%u).", (PetscInt)lda, pctx->K, (PetscUInt64)lda * (pctx->K + 1) * sizeof(double), PETSC_UINT32_MAX);
+  PetscCheck((PetscUInt64)lda * (pctx->K + 1) * sizeof(double) <= PETSC_UINT32_MAX, PETSC_COMM_SELF, PETSC_ERR_SUP, "LIBXSMM JIT cannot handle lda=%" PetscInt_FMT " with K=%" PetscInt_FMT ": lda*(K+1)*8=%" PetscUInt64_FMT " exceeds uint32 max (%u).", (PetscInt)lda,
+             pctx->K, (PetscUInt64)lda * (pctx->K + 1) * sizeof(double), PETSC_UINT32_MAX);
 
   libxsmm_gemm_shape shape = libxsmm_create_gemm_shape(block_size, pctx->K, block_size, block_size, lda, lda_C, LIBXSMM_DATATYPE_F64, LIBXSMM_DATATYPE_F64, LIBXSMM_DATATYPE_F64, LIBXSMM_DATATYPE_F64);
   pctx->kernel             = libxsmm_dispatch_gemm(shape, LIBXSMM_GEMM_FLAG_NONE, LIBXSMM_GEMM_PREFETCH_NONE);

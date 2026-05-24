@@ -91,14 +91,14 @@ static const PetscReal HexQInterp_Lobatto[8][8] = {
   {0, 0, 0, L, 0, 0, 0, H}
 };
 static const PetscReal HexQDeriv_Lobatto[8][8][3] = {
-  {{M * H, M * H, M}, {P * H, 0, 0},     {0, 0, 0},         {0, P * H, 0},     {M * L, M * L, P}, {P * L, 0, 0},     {0, 0, 0},         {0, P * L, 0}    },
-  {{M * H, 0, 0},     {P * H, M * H, M}, {0, P * H, 0},     {0, 0, 0},         {M * L, 0, 0},     {P * L, M * L, P}, {0, P * L, 0},     {0, 0, 0}        },
-  {{0, 0, 0},         {0, M * H, 0},     {P * H, P * H, M}, {M * H, 0, 0},     {0, 0, 0},         {0, M * L, 0},     {P * L, P * L, P}, {M * L, 0, 0}    },
-  {{0, M * H, 0},     {0, 0, 0},         {P * H, 0, 0},     {M * H, P * H, M}, {0, M * L, 0},     {0, 0, 0},         {P * L, 0, 0},     {M * L, P * L, P}},
-  {{M * L, M * L, M}, {P * L, 0, 0},     {0, 0, 0},         {0, P * L, 0},     {M * H, M * H, P}, {P * H, 0, 0},     {0, 0, 0},         {0, P * H, 0}    },
-  {{M * L, 0, 0},     {P * L, M * L, M}, {0, P * L, 0},     {0, 0, 0},         {M * H, 0, 0},     {P * H, M * H, P}, {0, P * H, 0},     {0, 0, 0}        },
-  {{0, 0, 0},         {0, M * L, 0},     {P * L, P * L, M}, {M * L, 0, 0},     {0, 0, 0},         {0, M * H, 0},     {P * H, P * H, P}, {M * H, 0, 0}    },
-  {{0, M * L, 0},     {0, 0, 0},         {P * L, 0, 0},     {M * L, P * L, M}, {0, M * H, 0},     {0, 0, 0},         {P * H, 0, 0},     {M * H, P * H, P}}
+  {{M * H, M *H, M}, {P * H, 0, 0},    {0, 0, 0},        {0, P *H, 0},     {M * L, M *L, P}, {P * L, 0, 0},    {0, 0, 0},        {0, P *L, 0}    },
+  {{M * H, 0, 0},    {P * H, M *H, M}, {0, P *H, 0},     {0, 0, 0},        {M * L, 0, 0},    {P * L, M *L, P}, {0, P *L, 0},     {0, 0, 0}       },
+  {{0, 0, 0},        {0, M *H, 0},     {P * H, P *H, M}, {M * H, 0, 0},    {0, 0, 0},        {0, M *L, 0},     {P * L, P *L, P}, {M * L, 0, 0}   },
+  {{0, M *H, 0},     {0, 0, 0},        {P * H, 0, 0},    {M * H, P *H, M}, {0, M *L, 0},     {0, 0, 0},        {P * L, 0, 0},    {M * L, P *L, P}},
+  {{M * L, M *L, M}, {P * L, 0, 0},    {0, 0, 0},        {0, P *L, 0},     {M * H, M *H, P}, {P * H, 0, 0},    {0, 0, 0},        {0, P *H, 0}    },
+  {{M * L, 0, 0},    {P * L, M *L, M}, {0, P *L, 0},     {0, 0, 0},        {M * H, 0, 0},    {P * H, M *H, P}, {0, P *H, 0},     {0, 0, 0}       },
+  {{0, 0, 0},        {0, M *L, 0},     {P * L, P *L, M}, {M * L, 0, 0},    {0, 0, 0},        {0, M *H, 0},     {P * H, P *H, P}, {M * H, 0, 0}   },
+  {{0, M *L, 0},     {0, 0, 0},        {P * L, 0, 0},    {M * L, P *L, M}, {0, M *H, 0},     {0, 0, 0},        {P * H, 0, 0},    {M * H, P *H, P}}
 };
 /* Standard Gauss */
 static const PetscReal HexQInterp_Gauss[8][8] = {
@@ -124,16 +124,16 @@ static const PetscReal HexQDeriv_Gauss[8][8][3] = {
 static const PetscReal (*HexQInterp)[8], (*HexQDeriv)[8][3];
 /* Standard 2x2 Gauss quadrature for the bottom layer. */
 static const PetscReal QuadQInterp[4][4] = {
-  {H * H, L * H, L * L, H * L},
-  {L * H, H * H, H * L, L * L},
-  {L * L, H * L, H * H, L * H},
-  {H * L, L * L, L * H, H * H}
+  {H * H, L *H, L *L, H *L},
+  {L * H, H *H, H *L, L *L},
+  {L * L, H *L, H *H, L *H},
+  {H * L, L *L, L *H, H *H}
 };
 static const PetscReal QuadQDeriv[4][4][2] = {
-  {{M * H, M * H}, {P * H, M * L}, {P * L, P * L}, {M * L, P * H}},
-  {{M * H, M * L}, {P * H, M * H}, {P * L, P * H}, {M * L, P * L}},
-  {{M * L, M * L}, {P * L, M * H}, {P * H, P * H}, {M * H, P * L}},
-  {{M * L, M * H}, {P * L, M * L}, {P * H, P * L}, {M * H, P * H}}
+  {{M * H, M *H}, {P * H, M *L}, {P * L, P *L}, {M * L, P *H}},
+  {{M * H, M *L}, {P * H, M *H}, {P * L, P *H}, {M * L, P *L}},
+  {{M * L, M *L}, {P * L, M *H}, {P * H, P *H}, {M * H, P *L}},
+  {{M * L, M *H}, {P * L, M *L}, {P * H, P *L}, {M * H, P *H}}
 };
 #undef G
 #undef H
@@ -1251,10 +1251,10 @@ static PetscErrorCode THIJacobianLocal_2D(DMDALocalInfo *info, const Node ***x3,
                                     FieldIndex(Node, DMDALocalIndex3D(info, i, j - 1, k), v), FieldIndex(Node, DMDALocalIndex3D(info, i, j, k), v), FieldIndex(Node, DMDALocalIndex3D(info, i, j + 1, k), v)};
         const PetscScalar w = (k && k < zm - 1) ? 0.5 : 0.25, hW = w * (x2[i - 1][j].h + x2[i][j].h) / (zm - 1.), hE = w * (x2[i][j].h + x2[i + 1][j].h) / (zm - 1.), hS = w * (x2[i][j - 1].h + x2[i][j].h) / (zm - 1.),
                           hN = w * (x2[i][j].h + x2[i][j + 1].h) / (zm - 1.);
-        PetscScalar      *vals, vals_upwind[] = {((PetscRealPart(x3[i][j][k].u) > 0) ? -hW : 0), (PetscRealPart(x3[i][j][k].u) > 0) ? +hE : -hW, (PetscRealPart(x3[i][j][k].u) > 0) ? 0 : +hE,
-                                                 (PetscRealPart(x3[i][j][k].v) > 0) ? -hS : 0,   (PetscRealPart(x3[i][j][k].v) > 0) ? +hN : -hS, ((PetscRealPart(x3[i][j][k].v) > 0) ? 0 : +hN)},
-                                vals_centered[] = {-0.5 * hW, 0.5 * (-hW + hE), 0.5 * hE, -0.5 * hS, 0.5 * (-hS + hN), 0.5 * hN};
-        vals                                    = 1 ? vals_upwind : vals_centered;
+        PetscScalar *vals, vals_upwind[] = {((PetscRealPart(x3[i][j][k].u) > 0) ? -hW : 0), (PetscRealPart(x3[i][j][k].u) > 0) ? +hE : -hW, (PetscRealPart(x3[i][j][k].u) > 0) ? 0 : +hE,
+                                            (PetscRealPart(x3[i][j][k].v) > 0) ? -hS : 0,   (PetscRealPart(x3[i][j][k].v) > 0) ? +hN : -hS, ((PetscRealPart(x3[i][j][k].v) > 0) ? 0 : +hN)},
+                           vals_centered[] = {-0.5 * hW, 0.5 * (-hW + hE), 0.5 * hE, -0.5 * hS, 0.5 * (-hS + hN), 0.5 * hN};
+        vals                               = 1 ? vals_upwind : vals_centered;
         if (k == 0) {
           Node derate;
           THIErosion(thi, &x3[i][j][0], NULL, &derate);

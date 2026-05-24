@@ -3734,18 +3734,18 @@ static PetscErrorCode MatMatMultNumeric_MPIBAIJ_MPIDense(Mat A, Mat B, Mat C)
     Mat      Bb, Cb;
     PetscInt BN = B->cmap->N, n = contents->workB->cmap->n;
     PetscCheck(n > 0, PETSC_COMM_SELF, PETSC_ERR_ARG_WRONG, "Column block size %" PetscInt_FMT " must be positive", n);
-    
+
     for (PetscInt i = 0; i < BN; i += n) {
       PetscInt cols = PetscMin(n, BN - i);
-      
+
       PetscCall(MatDenseGetSubMatrix(B, PETSC_DECIDE, PETSC_DECIDE, i, i + cols, &Bb));
       PetscCall(MatDenseGetSubMatrix(C, PETSC_DECIDE, PETSC_DECIDE, i, i + cols, &Cb));
       PetscCall(MatMPIDenseScatter(A, Bb, (i + n) > BN, C, &workB));
-      
+
       if (baij->B->cmap->n > 0) {
         /* Dynamically select the workspace matched to the column count */
         Mat workC_current = (cols == n) ? contents->workC : contents->workC1;
-        
+
         if (workC_current) {
           cdense = (Mat_MPIDense *)Cb->data;
           PetscCall(MatProductReplaceMats(baij->B, workB, NULL, workC_current));

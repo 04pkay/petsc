@@ -169,21 +169,21 @@ static PetscErrorCode DMPlexTransformCellRefine_Alfeld(DMPlexTransform tr, DMPol
   static DMPolytopeType quadT[] = {DM_POLYTOPE_POINT, DM_POLYTOPE_SEGMENT, DM_POLYTOPE_TRIANGLE};
   static PetscInt       quadS[] = {1, 4, 4};
   static PetscInt       quadC[] = {/* Cone of edge 0 */
-                                   DM_POLYTOPE_POINT, 0, 0, DM_POLYTOPE_POINT, 2, 0, 0, 0,
-                                   /* Cone of edge 1 */
-                                   DM_POLYTOPE_POINT, 0, 0, DM_POLYTOPE_POINT, 2, 1, 0, 0,
-                                   /* Cone of edge 2 */
-                                   DM_POLYTOPE_POINT, 0, 0, DM_POLYTOPE_POINT, 2, 2, 0, 0,
-                                   /* Cone of edge 3 */
-                                   DM_POLYTOPE_POINT, 0, 0, DM_POLYTOPE_POINT, 2, 3, 0, 0,
-                                   /* Cone of cell 0 */
-                                   DM_POLYTOPE_SEGMENT, 1, 0, 0, DM_POLYTOPE_SEGMENT, 0, 1, DM_POLYTOPE_SEGMENT, 0, 0,
-                                   /* Cone of cell 1 */
-                                   DM_POLYTOPE_SEGMENT, 1, 1, 0, DM_POLYTOPE_SEGMENT, 0, 2, DM_POLYTOPE_SEGMENT, 0, 1,
-                                   /* Cone of cell 2 */
-                                   DM_POLYTOPE_SEGMENT, 1, 2, 0, DM_POLYTOPE_SEGMENT, 0, 3, DM_POLYTOPE_SEGMENT, 0, 2,
-                                   /* Cone of cell 3 */
-                                   DM_POLYTOPE_SEGMENT, 1, 3, 0, DM_POLYTOPE_SEGMENT, 0, 0, DM_POLYTOPE_SEGMENT, 0, 3};
+                             DM_POLYTOPE_POINT, 0, 0, DM_POLYTOPE_POINT, 2, 0, 0, 0,
+                             /* Cone of edge 1 */
+                             DM_POLYTOPE_POINT, 0, 0, DM_POLYTOPE_POINT, 2, 1, 0, 0,
+                             /* Cone of edge 2 */
+                             DM_POLYTOPE_POINT, 0, 0, DM_POLYTOPE_POINT, 2, 2, 0, 0,
+                             /* Cone of edge 3 */
+                             DM_POLYTOPE_POINT, 0, 0, DM_POLYTOPE_POINT, 2, 3, 0, 0,
+                             /* Cone of cell 0 */
+                             DM_POLYTOPE_SEGMENT, 1, 0, 0, DM_POLYTOPE_SEGMENT, 0, 1, DM_POLYTOPE_SEGMENT, 0, 0,
+                             /* Cone of cell 1 */
+                             DM_POLYTOPE_SEGMENT, 1, 1, 0, DM_POLYTOPE_SEGMENT, 0, 2, DM_POLYTOPE_SEGMENT, 0, 1,
+                             /* Cone of cell 2 */
+                             DM_POLYTOPE_SEGMENT, 1, 2, 0, DM_POLYTOPE_SEGMENT, 0, 3, DM_POLYTOPE_SEGMENT, 0, 2,
+                             /* Cone of cell 3 */
+                             DM_POLYTOPE_SEGMENT, 1, 3, 0, DM_POLYTOPE_SEGMENT, 0, 0, DM_POLYTOPE_SEGMENT, 0, 3};
   static PetscInt       quadO[] = {
     0, 0,     /* Cone of edge 0 */
     0, 0,     /* Cone of edge 1 */
